@@ -7,6 +7,17 @@
 OS = $(shell uname -s)
 CC = gcc
 INSTALL = install
+VERSION = $(shell cat VERSION)
+
+ifeq ($(OS), Darwin)
+JARSUFFIX=mac
+endif
+ifeq ($(OS), Linux)
+JARSUFFIX=linux
+endif
+ifneq (,$(findstring WIN,$(OS)))
+JARSUFFIX=win32
+endif
 
 # APIVERSION is used in soname
 APIVERSION = 1
@@ -41,6 +52,12 @@ INSTALLDIRINC = $(INSTALLPREFIX)/include
 INSTALLDIRLIB = $(INSTALLPREFIX)/lib
 INSTALLDIRBIN = $(INSTALLPREFIX)/bin
 
+JAVA = java
+# see http://code.google.com/p/jnaerator/
+JNAERATOR = jnaerator-0.9.7.jar
+JNAERATORBASEURL = http://jnaerator.googlecode.com/files/
+
+
 .PHONY:	all clean depend install cleaninstall installpythonmodule
 
 all: $(STATICLIB) $(SHAREDLIB) $(EXECUTABLES)
@@ -56,6 +73,7 @@ clean:
 	$(RM) $(OBJS) $(EXECUTABLES) $(STATICLIB) $(SHAREDLIB)
 	$(RM) pythonmodule
 	$(RM) -r build/ dist/
+	$(RM) _jnaerator.* java/natpmp_$(OS).jar
 
 depend:
 	makedepend -f$(MAKEFILE_LIST) -Y $(OBJS:.o=.c) 2>/dev/null
@@ -69,6 +87,31 @@ install:	$(HEADERS) $(STATICLIB) $(SHAREDLIB) natpmpc-shared
 	$(INSTALL) -d $(INSTALLDIRBIN)
 	$(INSTALL) -m 755 natpmpc-shared $(INSTALLDIRBIN)/natpmpc
 	ln -s -f $(SONAME) $(INSTALLDIRLIB)/$(SHAREDLIB)
+
+jnaerator-0.9.8-shaded.jar:
+	wget $(JNAERATORBASEURL)/$@ || curl -o $@ $(JNAERATORBASEURL)/$@
+
+jnaerator-0.9.7.jar:
+	wget $(JNAERATORBASEURL)/$@ || curl -o $@ $(JNAERATORBASEURL)/$@
+
+jnaerator-0.9.3.jar:
+	wget $(JNAERATORBASEURL)/$@ || curl -o $@ $(JNAERATORBASEURL)/$@
+
+jar: $(SHAREDLIBRARY)  $(JNAERATOR)
+	$(JAVA) -jar $(JNAERATOR) -library natpmp \
+	natpmp.h declspec.h wingettimeofday.h getgateway.h \
+	$(SHAREDLIBRARY) -package fr.free.natpmp -o . \
+	-jar java/natpmp_$(JARSUFFIX).jar -v
+
+mvn_install:
+	mvn install:install-file -Dfile=java/natpmp_$(JARSUFFIX).jar \
+	 -DgroupId=com.github \
+	 -DartifactId=natpmp \
+	 -Dversion=$(VERSION) \
+	 -Dpackaging=jar \
+	 -Dclassifier=$(JARSUFFIX) \
+	 -DgeneratePom=true \
+	 -DcreateChecksum=true
 
 cleaninstall:
 	$(RM) $(addprefix $(INSTALLDIRINC), $(HEADERS))

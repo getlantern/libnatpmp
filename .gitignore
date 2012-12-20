@@ -1,9 +1,13 @@
 *~
+*.class
+java/*.jar
 *.o
 *.a
 *.so
 *.dylib
+_jnaerator*
 natpmpc-shared
 natpmpc-static
 out.errors.txt
 testgetgateway
+jnaerator-0.9.7.jar
