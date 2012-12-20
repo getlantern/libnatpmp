@@ -1,0 +1,9 @@
+*~
+*.o
+*.a
+*.so
+*.dylib
+natpmpc-shared
+natpmpc-static
+out.errors.txt
+testgetgateway
