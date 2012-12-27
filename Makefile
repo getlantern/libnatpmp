@@ -39,8 +39,12 @@ ifeq ($(OS), Darwin)
   SONAME = $(basename $(SHAREDLIB)).$(APIVERSION).dylib
   CFLAGS := -DMACOSX -D_DARWIN_C_SOURCE $(CFLAGS)
 else
+ifeq ($(JARSUFFIX), win32)
+  SHAREDLIB = natpmp.dll
+else
   SHAREDLIB = libnatpmp.so
   SONAME = $(SHAREDLIB).$(APIVERSION)
+endif
 endif
 
 HEADERS = natpmp.h
@@ -88,6 +92,9 @@ install:	$(HEADERS) $(STATICLIB) $(SHAREDLIB) natpmpc-shared
 	$(INSTALL) -m 755 natpmpc-shared $(INSTALLDIRBIN)/natpmpc
 	ln -s -f $(SONAME) $(INSTALLDIRLIB)/$(SHAREDLIB)
 
+jnaerator-0.10-shaded.jar:
+	wget $(JNAERATORBASEURL)/$@ || curl -o $@ $(JNAERATORBASEURL)/$@
+
 jnaerator-0.9.8-shaded.jar:
 	wget $(JNAERATORBASEURL)/$@ || curl -o $@ $(JNAERATORBASEURL)/$@
 
@@ -97,10 +104,10 @@ jnaerator-0.9.7.jar:
 jnaerator-0.9.3.jar:
 	wget $(JNAERATORBASEURL)/$@ || curl -o $@ $(JNAERATORBASEURL)/$@
 
-jar: $(SHAREDLIBRARY)  $(JNAERATOR)
+jar: $(SHAREDLIB)  $(JNAERATOR)
 	$(JAVA) -jar $(JNAERATOR) -library natpmp \
 	natpmp.h declspec.h wingettimeofday.h getgateway.h \
-	$(SHAREDLIBRARY) -package fr.free.natpmp -o . \
+	$(SHAREDLIB) -package fr.free.natpmp -o . \
 	-jar java/natpmp_$(JARSUFFIX).jar -v
 
 mvn_install:
