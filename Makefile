@@ -31,16 +31,23 @@ CFLAGS += -DENABLE_STRNATPMPERR
 
 LIBOBJS = natpmp.o getgateway.o
 
-OBJS = $(LIBOBJS) testgetgateway.o natpmpc.o
+OBJS = $(LIBOBJS) testgetgateway.o natpmpc.o natpmp-jni.o
 
 STATICLIB = libnatpmp.a
 ifeq ($(OS), Darwin)
   SHAREDLIB = libnatpmp.dylib
+  JNISHAREDLIB = libjninatpmp.dylib
   SONAME = $(basename $(SHAREDLIB)).$(APIVERSION).dylib
   CFLAGS := -DMACOSX -D_DARWIN_C_SOURCE $(CFLAGS)
 else
+ifneq (,$(findstring WIN,$(OS)))
+  SHAREDLIB = natpmp.dll
+  JNISHAREDLIB = jninatpmp.dll
+else
   SHAREDLIB = libnatpmp.so
+  JNISHAREDLIB = libjninatpmp.so
   SONAME = $(SHAREDLIB).$(APIVERSION)
+endif
 endif
 
 HEADERS = natpmp.h
@@ -53,10 +60,8 @@ INSTALLDIRLIB = $(INSTALLPREFIX)/lib
 INSTALLDIRBIN = $(INSTALLPREFIX)/bin
 
 JAVA = java
-# see http://code.google.com/p/jnaerator/
-JNAERATOR = jnaerator-0.9.7.jar
-JNAERATORBASEURL = http://jnaerator.googlecode.com/files/
-
+JAVACLASSES = fr/free/miniupnp/libnatpmp/NatPmp.class fr/free/miniupnp/libnatpmp/NatPmpResponse.class
+JNIHEADERS = fr_free_miniupnp_libnatpmp_NatPmp.h
 
 .PHONY:	all clean depend install cleaninstall installpythonmodule
 
@@ -70,10 +75,9 @@ installpythonmodule: pythonmodule
 	python setup.py install
 
 clean:
-	$(RM) $(OBJS) $(EXECUTABLES) $(STATICLIB) $(SHAREDLIB)
+	$(RM) $(OBJS) $(EXECUTABLES) $(STATICLIB) $(SHAREDLIB) $(JAVACLASSES) $(JNISHAREDLIB)
 	$(RM) pythonmodule
 	$(RM) -r build/ dist/
-	$(RM) _jnaerator.* java/natpmp_$(OS).jar
 
 depend:
 	makedepend -f$(MAKEFILE_LIST) -Y $(OBJS:.o=.c) 2>/dev/null
@@ -88,20 +92,26 @@ install:	$(HEADERS) $(STATICLIB) $(SHAREDLIB) natpmpc-shared
 	$(INSTALL) -m 755 natpmpc-shared $(INSTALLDIRBIN)/natpmpc
 	ln -s -f $(SONAME) $(INSTALLDIRLIB)/$(SHAREDLIB)
 
-jnaerator-0.9.8-shaded.jar:
-	wget $(JNAERATORBASEURL)/$@ || curl -o $@ $(JNAERATORBASEURL)/$@
+$(JNIHEADERS): fr/free/miniupnp/libnatpmp/NatPmp.class
+	javah -jni fr.free.miniupnp.libnatpmp.NatPmp
 
-jnaerator-0.9.7.jar:
-	wget $(JNAERATORBASEURL)/$@ || curl -o $@ $(JNAERATORBASEURL)/$@
+%.class: %.java
+	javac $<
 
-jnaerator-0.9.3.jar:
-	wget $(JNAERATORBASEURL)/$@ || curl -o $@ $(JNAERATORBASEURL)/$@
+$(JNISHAREDLIB): $(SHAREDLIB) $(JNIHEADERS) $(JAVACLASSES)
+	$(CC) $(CFLAGS) -c -I"$(JAVA_HOME)/include" natpmp-jni.c
+	$(CC) $(CFLAGS) -o $(JNISHAREDLIB) -shared -Wl,-soname,$(JNISHAREDLIB) natpmp-jni.o -lc -L. -lnatpmp
 
-jar: $(SHAREDLIBRARY)  $(JNAERATOR)
-	$(JAVA) -jar $(JNAERATOR) -library natpmp \
-	natpmp.h declspec.h wingettimeofday.h getgateway.h \
-	$(SHAREDLIBRARY) -package fr.free.natpmp -o . \
-	-jar java/natpmp_$(JARSUFFIX).jar -v
+jar: $(JNISHAREDLIB)
+	find fr -name '*.class' -print > classes.list
+	jar cf natpmp_$(JARSUFFIX).jar $(JNISHAREDLIB) @classes.list
+	rm classes.list
+
+jnitestbuild: $(JNISHAREDLIB) JavaTest.class
+	javac JavaTest.java
+
+jnitest: jnitestbuild
+	java -Djava.library.path=.:/usr/lib/jni JavaTest
 
 mvn_install:
 	mvn install:install-file -Dfile=java/natpmp_$(JARSUFFIX).jar \

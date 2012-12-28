@@ -10,4 +10,5 @@ natpmpc-shared
 natpmpc-static
 out.errors.txt
 testgetgateway
-jnaerator-0.9.7.jar
+fr_free_miniupnp_libnatpmp_NatPmp.h
+natpmp_*.jar
