@@ -1,4 +1,8 @@
-#include <jni.h>
+#ifdef __CYGWIN__
+#include <stdint.h>
+#define __int64 uint64_t
+#endif
+
 #include <stdlib.h>
 #include "natpmp.h"
 
@@ -61,14 +65,14 @@ static natpmp_t* getNatPmp(JNIEnv* env, jobject obj) {
   return natpmp;
 }
 
-JNIEXPORT int JNICALL Java_fr_free_miniupnp_libnatpmp_NatPmp_sendPublicAddressRequest(JNIEnv* env, jobject obj) {
+JNIEXPORT jint JNICALL Java_fr_free_miniupnp_libnatpmp_NatPmp_sendPublicAddressRequest(JNIEnv* env, jobject obj) {
   natpmp_t* natpmp = getNatPmp(env, obj);
   if (natpmp == NULL) return -1;
 
   return sendpublicaddressrequest(natpmp);
 }
 
-JNIEXPORT int JNICALL Java_fr_free_miniupnp_libnatpmp_NatPmp_sendNewPortMappingRequest(JNIEnv* env, jobject obj, jint protocol, jint privateport, jint publicport, jint lifetime) {
+JNIEXPORT jint JNICALL Java_fr_free_miniupnp_libnatpmp_NatPmp_sendNewPortMappingRequest(JNIEnv* env, jobject obj, jint protocol, jint privateport, jint publicport, jint lifetime) {
   natpmp_t* natpmp = getNatPmp(env, obj);
   if (natpmp == NULL) return -1;
 
@@ -92,7 +96,7 @@ JNIEXPORT jlong JNICALL Java_fr_free_miniupnp_libnatpmp_NatPmp_getNatPmpRequestT
   (*env)->Set ## longtype ## Field(env, response, fid, resp. prefix name);     \
 }
 
-JNIEXPORT int JNICALL Java_fr_free_miniupnp_libnatpmp_NatPmp_readNatPmpResponseOrRetry(JNIEnv* env, jobject obj, jobject response) {
+JNIEXPORT jint JNICALL Java_fr_free_miniupnp_libnatpmp_NatPmp_readNatPmpResponseOrRetry(JNIEnv* env, jobject obj, jobject response) {
 
   natpmp_t* natpmp = getNatPmp(env, obj);
   natpmpresp_t resp;
