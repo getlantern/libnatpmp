@@ -135,12 +135,13 @@ cleaninstall:
 	$(RM) $(INSTALLDIRLIB)/$(STATICLIB)
 
 testgetgateway:	testgetgateway.o getgateway.o
+	$(CC) $(LDFLAGS) -o $@ $^ $(EXTRA_LD)
 
 natpmpc-static:	natpmpc.o $(STATICLIB)
-	$(CC) $(LDFLAGS) -o $@ $^
+	$(CC) $(LDFLAGS) -o $@ $^ $(EXTRA_LD)
 
 natpmpc-shared:	natpmpc.o $(SHAREDLIB)
-	$(CC) $(LDFLAGS) -o $@ $^
+	$(CC) $(LDFLAGS) -o $@ $^ $(EXTRA_LD)
 
 $(STATICLIB):	$(LIBOBJS)
 	$(AR) crs $@ $?
