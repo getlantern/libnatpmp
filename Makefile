@@ -43,6 +43,8 @@ else
 ifneq (,$(findstring WIN,$(OS)))
   SHAREDLIB = natpmp.dll
   JNISHAREDLIB = jninatpmp.dll
+  CC = i686-w64-mingw32-gcc
+  EXTRA_LD = -lws2_32 -lIphlpapi -Wl,--no-undefined -Wl,--enable-runtime-pseudo-reloc --Wl,kill-at
 else
   SHAREDLIB = libnatpmp.so
   JNISHAREDLIB = libjninatpmp.so
@@ -99,19 +101,22 @@ $(JNIHEADERS): fr/free/miniupnp/libnatpmp/NatPmp.class
 	javac $<
 
 $(JNISHAREDLIB): $(SHAREDLIB) $(JNIHEADERS) $(JAVACLASSES)
-	$(CC) $(CFLAGS) -c -I"$(JAVA_HOME)/include" natpmp-jni.c
-	$(CC) $(CFLAGS) -o $(JNISHAREDLIB) -shared -Wl,-soname,$(JNISHAREDLIB) natpmp-jni.o -lc -L. -lnatpmp
-
+ifneq (,$(findstring WIN,$(OS)))
+	$(CC) -m32 -D_JNI_Implementation_ -Wl,--kill-at \
+	-I"$(JAVA_HOME)/include" -I"$(JAVA_HOME)/include/win32" \
+	natpmp-jni.c -shared \
+	-o $(JNISHAREDLIB) -L. -lnatpmp -lws2_32
+else
+	$(CC) $(CFLAGS) -c -I"$(JAVA_HOME)/include" -I"$(JAVA_HOME)/include/win32" natpmp-jni.c
+	$(CC) $(CFLAGS) -o $(JNISHAREDLIB) -shared -Wl,-soname,$(JNISHAREDLIB)  -Wl,--add-stdcall-alias -Wl,--export-all-symbols natpmp-jni.o -lc -L. -lnatpmp
+endif
 jar: $(JNISHAREDLIB)
 	find fr -name '*.class' -print > classes.list
 	jar cf natpmp_$(JARSUFFIX).jar $(JNISHAREDLIB) @classes.list
 	rm classes.list
 
-jnitestbuild: $(JNISHAREDLIB) JavaTest.class
-	javac JavaTest.java
-
-jnitest: jnitestbuild
-	java -Djava.library.path=.:/usr/lib/jni JavaTest
+jnitest: $(JNISHAREDLIB) JavaTest.class
+	java '-Djava.library.path=.' JavaTest
 
 mvn_install:
 	mvn install:install-file -Dfile=java/natpmp_$(JARSUFFIX).jar \
@@ -144,7 +149,7 @@ $(SHAREDLIB):	$(LIBOBJS)
 ifeq ($(OS), Darwin)
 	$(CC) -dynamiclib -Wl,-install_name,$(SONAME) -o $@ $^
 else
-	$(CC) -shared -Wl,-soname,$(SONAME) -o $@ $^
+	$(CC) -shared -Wl,-soname,$(SONAME) -o $@ $^ $(EXTRA_LD)
 endif
 
 # DO NOT DELETE
