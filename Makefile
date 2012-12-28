@@ -108,7 +108,7 @@ ifneq (,$(findstring WIN,$(OS)))
 	-o $(JNISHAREDLIB) -L. -lnatpmp -lws2_32 -lIphlpapi
 else
 	$(CC) $(CFLAGS) -c -I"$(JAVA_HOME)/include" -I"$(JAVA_HOME)/include/win32" natpmp-jni.c
-	$(CC) $(CFLAGS) -o $(JNISHAREDLIB) -shared -Wl,-soname,$(JNISHAREDLIB)  -Wl,--add-stdcall-alias -Wl,--export-all-symbols natpmp-jni.o -lc -L. -lnatpmp
+	$(CC) $(CFLAGS) -o $(JNISHAREDLIB) -shared -Wl,-soname,$(JNISHAREDLIB)  natpmp-jni.o -lc -L. -lnatpmp
 endif
 jar: $(JNISHAREDLIB)
 	find fr -name '*.class' -print > classes.list
