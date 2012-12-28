@@ -5,10 +5,14 @@ java/*.jar
 *.a
 *.so
 *.dylib
+*.dll
 _jnaerator*
 natpmpc-shared
+natpmpc-shared.exe
 natpmpc-static
+natpmpc-static.exe
 out.errors.txt
 testgetgateway
+testgetgateway.exe
 fr_free_miniupnp_libnatpmp_NatPmp.h
 natpmp_*.jar
