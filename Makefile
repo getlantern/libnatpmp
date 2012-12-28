@@ -105,7 +105,7 @@ ifneq (,$(findstring WIN,$(OS)))
 	$(CC) -m32 -D_JNI_Implementation_ -Wl,--kill-at \
 	-I"$(JAVA_HOME)/include" -I"$(JAVA_HOME)/include/win32" \
 	natpmp-jni.c -shared \
-	-o $(JNISHAREDLIB) -L. -lnatpmp -lws2_32
+	-o $(JNISHAREDLIB) -L. -lnatpmp -lws2_32 -lIphlpapi
 else
 	$(CC) $(CFLAGS) -c -I"$(JAVA_HOME)/include" -I"$(JAVA_HOME)/include/win32" natpmp-jni.c
 	$(CC) $(CFLAGS) -o $(JNISHAREDLIB) -shared -Wl,-soname,$(JNISHAREDLIB)  -Wl,--add-stdcall-alias -Wl,--export-all-symbols natpmp-jni.o -lc -L. -lnatpmp

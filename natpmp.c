@@ -52,6 +52,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #endif
 #include "natpmp.h"
 #include "getgateway.h"
+#include <stdio.h>
 
 LIBSPEC int initnatpmp(natpmp_t * p, int forcegw, in_addr_t forcedgw)
 {
@@ -194,7 +195,11 @@ LIBSPEC int readnatpmpresponse(natpmp_t * p, natpmpresp_t * response)
 	n = recvfrom(p->s, buf, sizeof(buf), 0,
 	             (struct sockaddr *)&addr, &addrlen);
 	if(n<0)
+#ifdef WIN32
+		switch(WSAGetLastError()) {
+#else
 		switch(errno) {
+#endif
 		/*case EAGAIN:*/
 		case EWOULDBLOCK:
 			n = NATPMP_TRYAGAIN;

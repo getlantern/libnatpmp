@@ -15,6 +15,11 @@ class JavaTest {
         int result = -1;
         do{
             result = natpmp.readNatPmpResponseOrRetry(response);
+	    try {
+		Thread.sleep(4000);
+	    } catch (InterruptedException e) {
+		//fallthrough
+	    }
         } while (result != 0);
 
 	byte[] bytes = intToByteArray(response.addr);

@@ -4,7 +4,10 @@ import java.nio.ByteBuffer;
 
 public class NatPmp {
 
-    static { System.loadLibrary("jninatpmp"); }
+    static {
+        System.loadLibrary("jninatpmp");
+        startup();
+    }
 
     public ByteBuffer natpmp;
 
@@ -25,12 +28,14 @@ public class NatPmp {
 
 
     protected void finalize() {
-        if (natpmp != null) 
-        free();
+        if (natpmp != null)
+            free();
     }
 
     private native void init(int forcegw, int forcedgw);
     private native void free();
+
+    private static native void startup();
 
     public native int sendPublicAddressRequest();
     public native int sendNewPortMappingRequest(int protocol, int privateport, int publicport, int lifetime);

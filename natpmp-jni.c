@@ -3,6 +3,12 @@
 #define __int64 uint64_t
 #endif
 
+#ifdef WIN32
+#include <windows.h>
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#endif
+
 #include <stdlib.h>
 #include "natpmp.h"
 
@@ -71,6 +77,16 @@ JNIEXPORT jint JNICALL Java_fr_free_miniupnp_libnatpmp_NatPmp_sendPublicAddressR
 
   return sendpublicaddressrequest(natpmp);
 }
+
+
+JNIEXPORT void JNICALL Java_fr_free_miniupnp_libnatpmp_NatPmp_startup(JNIEnv* env, jclass cls) {
+#ifdef WIN32
+  WSADATA wsaData;
+  WORD wVersionRequested = MAKEWORD(2, 2);
+  WSAStartup(wVersionRequested, &wsaData);
+#endif
+}
+
 
 JNIEXPORT jint JNICALL Java_fr_free_miniupnp_libnatpmp_NatPmp_sendNewPortMappingRequest(JNIEnv* env, jobject obj, jint protocol, jint privateport, jint publicport, jint lifetime) {
   natpmp_t* natpmp = getNatPmp(env, obj);
