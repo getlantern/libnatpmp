@@ -139,8 +139,8 @@ JNIEXPORT jint JNICALL Java_fr_free_miniupnp_libnatpmp_NatPmp_readNatPmpResponse
 
 
   } else {
-    SET_FIELD(pnu.newportmapping., privateport, "S", Short);
-    SET_FIELD(pnu.newportmapping., mappedpublicport, "S", Short);
+    SET_FIELD(pnu.newportmapping., privateport, "I", Int);
+    SET_FIELD(pnu.newportmapping., mappedpublicport, "I", Int);
 
     jfieldID fid = (*env)->GetFieldID(env, thisClass, "lifetime", "J");
     if (fid == NULL) return -1;

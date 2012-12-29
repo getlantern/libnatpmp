@@ -7,20 +7,20 @@ public class NatPmpResponse {
     public static final int TYPE_TCPPORTMAPPING=2;
 
     /** see TYPE_* constants */
-    public short type;	
+    public short type;
     /** NAT-PMP response code */
-    public short resultcode;	
+    public short resultcode;
     /** milliseconds since start of epoch */
-    public long epoch;	
+    public long epoch;
     
     /** only defined if type == 0*/
     public int addr;
 
     /** only defined if type != 0 */
-    public short privateport;
+    public int privateport;
 
     /** only defined if type != 0 */
-    public short mappedpublicport;
+    public int mappedpublicport;
 
     /** only defined if type != 0 */
     public long lifetime; //milliseconds
