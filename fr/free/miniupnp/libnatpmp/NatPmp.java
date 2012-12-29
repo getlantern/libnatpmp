@@ -1,11 +1,12 @@
 package fr.free.miniupnp.libnatpmp;
 
+import com.ochafik.lang.jnaerator.runtime.LibraryExtractor;
 import java.nio.ByteBuffer;
 
 public class NatPmp {
+       private static final String JNA_LIBRARY_NAME = LibraryExtractor.getLibraryPath("jninatpmp", true, fr.free.miniupnp.libnatpmp.NatPmp.class);
 
     static {
-        System.loadLibrary("jninatpmp");
         startup();
     }
 

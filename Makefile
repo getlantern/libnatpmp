@@ -65,6 +65,13 @@ JAVA = java
 JAVACLASSES = fr/free/miniupnp/libnatpmp/NatPmp.class fr/free/miniupnp/libnatpmp/NatPmpResponse.class
 JNIHEADERS = fr_free_miniupnp_libnatpmp_NatPmp.h
 
+# JNAerator does not actually work on win32. But its extractor class
+# does, so we'll be using that directly.
+# see http://code.google.com/p/jnaerator/
+JNAERATOR = jnaerator-0.10-shaded.jar
+JNAERATORBASEURL = http://jnaerator.googlecode.com/files/
+
+
 .PHONY:	all clean depend install cleaninstall installpythonmodule
 
 all: $(STATICLIB) $(SHAREDLIB) $(EXECUTABLES)
@@ -98,7 +105,7 @@ $(JNIHEADERS): fr/free/miniupnp/libnatpmp/NatPmp.class
 	javah -jni fr.free.miniupnp.libnatpmp.NatPmp
 
 %.class: %.java
-	javac $<
+	javac -cp jnaerator-0.10-shaded.jar:. $<
 
 $(JNISHAREDLIB): $(SHAREDLIB) $(JNIHEADERS) $(JAVACLASSES)
 ifneq (,$(findstring WIN,$(OS)))
@@ -115,8 +122,8 @@ jar: $(JNISHAREDLIB)
 	jar cf natpmp_$(JARSUFFIX).jar $(JNISHAREDLIB) @classes.list
 	rm classes.list
 
-jnitest: $(JNISHAREDLIB) JavaTest.class
-	java '-Djava.library.path=.' JavaTest
+jnitest: $(JNISHAREDLIB) $(JNAERATOR) JavaTest.class
+	java -cp .:jnaerator-0.10-shaded.jar JavaTest
 
 mvn_install:
 	mvn install:install-file -Dfile=java/natpmp_$(JARSUFFIX).jar \
@@ -152,6 +159,10 @@ ifeq ($(OS), Darwin)
 else
 	$(CC) -shared -Wl,-soname,$(SONAME) -o $@ $^ $(EXTRA_LD)
 endif
+
+jnaerator-0.10-shaded.jar:
+	wget $(JNAERATORBASEURL)/$@ || curl -o $@ $(JNAERATORBASEURL)/$@
+
 
 # DO NOT DELETE
 
