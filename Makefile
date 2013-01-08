@@ -36,10 +36,10 @@ OBJS = $(LIBOBJS) testgetgateway.o natpmpc.o natpmp-jni.o
 STATICLIB = libnatpmp.a
 ifeq ($(OS), Darwin)
   SHAREDLIB = libnatpmp.dylib
-  JNISHAREDLIB = libjninatpmp.dylib
+  JNISHAREDLIB = libjninatpmp.jnilib
   SONAME = $(basename $(SHAREDLIB)).dylib
-  CFLAGS := -DMACOSX -D_DARWIN_C_SOURCE $(CFLAGS) -I/System/Library/Frameworks/
-  SONAMEFLAGS=-Wl,-install_name,$(JNISHAREDLIB)
+  CFLAGS := -DMACOSX -D_DARWIN_C_SOURCE $(CFLAGS) -I/System/Library/Frameworks/JavaVM.framework/Headers
+  SONAMEFLAGS=-Wl,-install_name,$(JNISHAREDLIB) -dynamiclib -framework JavaVM
 else
 ifneq (,$(findstring WIN,$(OS)))
   SHAREDLIB = natpmp.dll
@@ -103,15 +103,15 @@ $(JNIHEADERS): fr/free/miniupnp/libnatpmp/NatPmp.class
 %.class: %.java
 	javac -cp . $<
 
-$(JNISHAREDLIB): $(SHAREDLIB) $(JNIHEADERS) $(JAVACLASSES)
+$(JNISHAREDLIB): $(JNIHEADERS) $(JAVACLASSES) $(LIBOBJS)
 ifneq (,$(findstring WIN,$(OS)))
 	$(CC) -m32 -D_JNI_Implementation_ -Wl,--kill-at \
 	-I"$(JAVA_HOME)/include" -I"$(JAVA_HOME)/include/win32" \
 	natpmp-jni.c -shared \
 	-o $(JNISHAREDLIB) -L. -lnatpmp -lws2_32 -lIphlpapi
 else
-	$(CC) $(CFLAGS) -c -I"$(JAVA_HOME)/include" -I"$(JAVA_HOME)/include/win32" natpmp-jni.c
-	$(CC) $(CFLAGS) -o $(JNISHAREDLIB) -shared $(SONAMEFLAGS) natpmp-jni.o 
+	$(CC) $(CFLAGS) -c -I"$(JAVA_HOME)/include" natpmp-jni.c
+	$(CC) $(CFLAGS) -o $(JNISHAREDLIB) -shared $(SONAMEFLAGS)  natpmp-jni.o -lc $(LIBOBJS)
 endif
 
 jar: $(JNISHAREDLIB)
@@ -119,7 +119,8 @@ jar: $(JNISHAREDLIB)
 	$(eval JNISHAREDLIBPATH := $(shell java fr.free.miniupnp.libnatpmp.LibraryExtractor))
 	mkdir -p libraries/$(JNISHAREDLIBPATH)
 	mv $(JNISHAREDLIB) libraries/$(JNISHAREDLIBPATH)/$(JNISHAREDLIB)
-	jar cf natpmp_$(JARSUFFIX).jar @classes.list libraries/$(JNISHAREDLIBPATH)/$(JNISHAREDLIB)
+	rm natpmp_$(JARSUFFIX).jar
+	jar cf natpmp_$(JARSUFFIX).jar @classes.list libraries/$(JNISHAREDLIBPATH)/$(JNISHAREDLIB) 
 	rm classes.list
 
 jnitest: $(JNISHAREDLIB) JavaTest.class
