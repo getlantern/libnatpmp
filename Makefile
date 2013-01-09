@@ -83,6 +83,10 @@ clean:
 	$(RM) $(OBJS) $(EXECUTABLES) $(STATICLIB) $(SHAREDLIB) $(JAVACLASSES) $(JNISHAREDLIB)
 	$(RM) pythonmodule
 	$(RM) -r build/ dist/ libraries/
+	$(RM) JavaTest.class fr_free_miniupnp_libnatpmp_NatPmp.h
+
+distclean: clean
+	$(RM) *.jar out.errors.txt
 
 depend:
 	makedepend -f$(MAKEFILE_LIST) -Y $(OBJS:.o=.c) 2>/dev/null
@@ -119,9 +123,9 @@ jar: $(JNISHAREDLIB)
 	$(eval JNISHAREDLIBPATH := $(shell java fr.free.miniupnp.libnatpmp.LibraryExtractor))
 	mkdir -p libraries/$(JNISHAREDLIBPATH)
 	mv $(JNISHAREDLIB) libraries/$(JNISHAREDLIBPATH)/$(JNISHAREDLIB)
-	rm natpmp_$(JARSUFFIX).jar
+	$(RM) natpmp_$(JARSUFFIX).jar
 	jar cf natpmp_$(JARSUFFIX).jar @classes.list libraries/$(JNISHAREDLIBPATH)/$(JNISHAREDLIB) 
-	rm classes.list
+	$(RM) classes.list
 
 jnitest: $(JNISHAREDLIB) JavaTest.class
 	$(RM) libjninatpmp.so
