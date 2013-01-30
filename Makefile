@@ -19,10 +19,12 @@ ifneq (,$(findstring WIN,$(OS)))
 JARSUFFIX=win32
 endif
 
+JAVAC ?= javac
+
 # APIVERSION is used in soname
 APIVERSION = 1
 #LDFLAGS = -Wl,--no-undefined
-CFLAGS = -Os
+CFLAGS ?= -Os
 #CFLAGS = -g -O0
 CFLAGS += -fPIC
 CFLAGS += -Wall
@@ -63,7 +65,7 @@ INSTALLDIRINC = $(INSTALLPREFIX)/include
 INSTALLDIRLIB = $(INSTALLPREFIX)/lib
 INSTALLDIRBIN = $(INSTALLPREFIX)/bin
 
-JAVA = java
+JAVA ?= java
 JAVAPACKAGE = fr/free/miniupnp/libnatpmp
 JAVACLASSES = $(JAVAPACKAGE)/NatPmp.class $(JAVAPACKAGE)/NatPmpResponse.class $(JAVAPACKAGE)/LibraryExtractor.class $(JAVAPACKAGE)/URLUtils.class
 JNIHEADERS = fr_free_miniupnp_libnatpmp_NatPmp.h
@@ -105,7 +107,7 @@ $(JNIHEADERS): fr/free/miniupnp/libnatpmp/NatPmp.class
 	javah -jni fr.free.miniupnp.libnatpmp.NatPmp
 
 %.class: %.java
-	javac -cp . $<
+	$(JAVAC) -cp . $<
 
 $(JNISHAREDLIB): $(JNIHEADERS) $(JAVACLASSES) $(LIBOBJS)
 ifneq (,$(findstring WIN,$(OS)))
